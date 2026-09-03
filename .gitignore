@@ -2,3 +2,4 @@
 .gitconfig
 __pycache__/
 *.pyc
+simulation_results.json
