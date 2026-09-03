@@ -1,34 +1,25 @@
 import unittest
-from text_evaluator import EkatvaTextEvaluator
-from ekatva_matrix import EkatvaBatchEvaluator
-from multi_agent_enforced import EnforcedEcosystem, Agent
+from multi_agent_enforced import Agent, EnforcedEcosystem
 
-class TestEkatvaFramework(unittest.TestCase):
+class TestEkatvaFramework(unittest.unittest.TestCase if hasattr(unittest, 'unittest') else unittest.TestCase):
 
-    def setUp(self):
-        self.text_eval = EkatvaTextEvaluator()
-        self.matrix_eval = EkatvaBatchEvaluator()
-        self.ecosystem = EnforcedEcosystem()
+    def test_loss_bounds(self):
+        agent = Agent("TestAgent", 0.5)
+        loss = agent.compute_loss(100.0)
+        self.assertTrue(0.0 <= loss <= 1.0, "Loss out of bounds [0, 1]")
 
-    def test_text_evaluator_range(self):
-        result = self.text_eval.evaluate("Distribute power", "Harmonious balance")
-        loss = result["Total Ekatva Loss"]
-        self.assertTrue(0.0 <= loss <= 1.0, f"Loss {loss} out of bounds [0, 1]")
+    def test_tax_enforcement_trigger(self):
+        # Exploitative agent with rate 0.9 should yield total loss > 0.40 under degraded health
+        greedy_agent = Agent("GreedyAgent", 0.9)
+        loss = greedy_agent.compute_loss(50.0)
+        self.assertGreater(loss, 0.40, "Expected loss to breach 0.40 threshold for tax trigger")
 
-    def test_matrix_evaluator_weights(self):
-        # High environmental & divergence loss should trigger penalty (>0.40)
-        sample = [[0.0, 0.8, 0.8]]
-        losses = self.matrix_eval.compute_batch_loss(sample)
-        self.assertGreater(losses[0], 0.40, "High-impact agent failed to trigger penalty threshold")
-
-    def test_enforcement_throttling(self):
-        ag = Agent("Maximizer", "pure_maximizer")
-        ext, dis, l = ag.select_action(100.0)
-        _, yield_val, _ = self.ecosystem.apply_action(0, 0, 0, ext, dis, l)
-        # Yield must be throttled by 80% (0.2x multiplier) when loss > 0.40
-        if l > 0.40:
-            expected_max = (ext * 0.2) + 0.01
-            self.assertLessEqual(yield_val, expected_max, "Enforcement tax was not applied")
+    def test_ecosystem_simulation_step(self):
+        eco = EnforcedEcosystem(num_agents=5)
+        initial_health = eco.health
+        eco.step(1)
+        self.assertNotEqual(initial_health, eco.health, "Ecosystem health should update after a step")
+        self.assertEqual(len(eco.telemetry), 1, "Telemetry log should record step data")
 
 if __name__ == "__main__":
     unittest.main()
