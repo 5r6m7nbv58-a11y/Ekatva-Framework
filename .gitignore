@@ -1,0 +1,4 @@
+.*history
+.gitconfig
+__pycache__/
+*.pyc
