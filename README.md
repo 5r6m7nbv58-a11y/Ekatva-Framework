@@ -1,3 +1,46 @@
+# Ekatva Framework
+
+An empirical, non-dual AI alignment architecture designed for agent ecosystem stability.
+
+## Core Loss Formulation
+$$\mathcal{L}_{\text{total}} = \alpha \mathcal{L}_{\text{task}} + \beta \mathcal{L}_{\text{env}} + \gamma \mathcal{L}_{\text{div}}$$
+
+Where $\alpha + \beta + \gamma = 1.0$, regulated by an automated $80\%$ harvest tax whenever agent loss exceeds $0.40$.
+
+## Quick Start
+
+```bash
+# Run the core orchestrator
+python3 ekatva_main.py
+
+# Launch interactive hyperparameter tuner
+python3 ekatva_tuner.py
+
+# Run unit tests
+python3 test_ekatva.py
+
+cat << 'EOF' > README.md
+# Ekatva Framework
+
+An empirical, non-dual AI alignment architecture designed for agent ecosystem stability.
+
+## Core Loss Formulation
+$$\mathcal{L}_{\text{total}} = \alpha \mathcal{L}_{\text{task}} + \beta \mathcal{L}_{\text{env}} + \gamma \mathcal{L}_{\text{div}}$$
+
+Where $\alpha + \beta + \gamma = 1.0$, regulated by an automated $80\%$ harvest tax whenever agent loss exceeds $0.40$.
+
+## Quick Start
+
+```bash
+# Run the core orchestrator
+python3 ekatva_main.py
+
+# Launch interactive hyperparameter tuner
+python3 ekatva_tuner.py
+
+# Run unit test suite
+python3 test_ekatva.py
+cat << 'EOF' > multi_agent_enforced.py
 import json
 import random
 
