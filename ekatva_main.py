@@ -6,14 +6,15 @@ def main_menu():
         print("\n==========================================")
         print("      EKATVA ALIGNMENT FRAMEWORK CLI      ")
         print("==========================================")
-        print("1. Run Ecosystem Simulation (10 Agents)")
+        print("1. Run Heterogeneous Ecosystem Simulation")
         print("2. Analyze Telemetry (simulation_results.json)")
         print("3. Launch Hyperparameter Tuner")
         print("4. Execute Unit Test Suite")
-        print("5. Exit")
+        print("5. Run API Middleware Router Demo")
+        print("6. Exit")
         print("------------------------------------------")
         
-        choice = input("Select an option (1-5): ").strip()
+        choice = input("Select an option (1-6): ").strip()
         
         if choice == "1":
             subprocess.run(["python3", "multi_agent_enforced.py"])
@@ -24,10 +25,12 @@ def main_menu():
         elif choice == "4":
             subprocess.run(["python3", "test_ekatva.py"])
         elif choice == "5":
+            subprocess.run(["python3", "ekatva_middleware.py"])
+        elif choice == "6":
             print("Exiting Ekatva CLI.")
             break
         else:
-            print("Invalid choice. Please select 1-5.")
+            print("Invalid choice. Please select 1-6.")
 
 if __name__ == "__main__":
     main_menu()
