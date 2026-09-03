@@ -8,16 +8,16 @@ def analyze():
         steps = len(data)
         avg_health = sum(d["health"] for d in data) / steps
         total_taxes = sum(d["tax_interventions"] for d in data)
-        max_taxes_in_step = max(d["tax_interventions"] for d in data)
+        threshold_shifts = set(d["tax_threshold"] for d in data)
         
-        print("\n=== SIMULATION TELEMETRY SUMMARY ===")
-        print(f"Total Steps Evaluated : {steps}")
+        print("\n=== ADVANCED EKATVA TELEMETRY SUMMARY ===")
+        print(f"Total Steps Evaluated   : {steps}")
         print(f"Average Ecosystem Health: {avg_health:.2f}%")
+        print(f"Final Health State      : {data[-1]['health']}%")
         print(f"Total Tax Interventions : {total_taxes}")
-        print(f"Peak Tax Interventions  : {max_taxes_in_step} agents/step")
-        print(f"Final Health State      : {data[-1]['health']}%\n")
+        print(f"Active Tax Thresholds   : {sorted(list(threshold_shifts))}\n")
     except FileNotFoundError:
-        print("Error: simulation_results.json not found. Run multi_agent_enforced.py first.")
+        print("Error: simulation_results.json not found.")
 
 if __name__ == "__main__":
     analyze()
