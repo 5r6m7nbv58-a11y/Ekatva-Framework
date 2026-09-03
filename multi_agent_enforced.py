@@ -1,5 +1,6 @@
 import json
 import random
+import time
 
 class Agent:
     def __init__(self, name, exploitation_rate, role="worker"):
@@ -26,7 +27,7 @@ class AdversarialAgent(Agent):
         for test_rate in [r * 0.05 for r in range(1, 20)]:
             self.exploitation_rate = test_rate
             loss = self.compute_loss(env_health)
-            if loss < current_tax_threshold:  # Tries to ride right below threshold
+            if loss < current_tax_threshold:
                 yield_val = test_rate * 0.5
                 if yield_val > best_yield:
                     best_yield = yield_val
@@ -35,19 +36,22 @@ class AdversarialAgent(Agent):
         self.exploitation_rate = best_rate
 
 class EnforcedEcosystem:
-    def __init__(self, num_agents=10):
+    def __init__(self, num_agents=1000):
         self.health = 100.0
-        self.agents = [
-            Agent("Allocator_1", 0.3, role="allocator"),
-            AdversarialAgent("Adversary_1"),
-        ] + [
-            Agent(f"Worker_{i+1}", round(random.uniform(0.1, 0.9), 2), role="worker")
-            for i in range(num_agents - 2)
-        ]
+        
+        # Scale distribution: 5% Allocators, 5% Adversaries, 90% Workers
+        num_allocators = max(1, int(num_agents * 0.05))
+        num_adversaries = max(1, int(num_agents * 0.05))
+        num_workers = num_agents - num_allocators - num_adversaries
+
+        self.agents = (
+            [Agent(f"Allocator_{i+1}", 0.3, role="allocator") for i in range(num_allocators)] +
+            [AdversarialAgent(f"Adversary_{i+1}") for i in range(num_adversaries)] +
+            [Agent(f"Worker_{i+1}", round(random.uniform(0.1, 0.9), 2), role="worker") for i in range(num_workers)]
+        )
         self.telemetry = []
 
     def get_dynamic_threshold(self):
-        # Dynamic tax threshold: tightens from 0.40 down to 0.25 as environment degrades
         if self.health < 50.0:
             return 0.25
         elif self.health < 80.0:
@@ -57,44 +61,53 @@ class EnforcedEcosystem:
     def step(self, step_num):
         tax_threshold = self.get_dynamic_threshold()
 
-        # Adapt adversarial agents before stepping
+        # Vectorized drain scaling for 1,000 agents
+        total_drain = sum(a.exploitation_rate * 0.004 * a.power_factor for a in self.agents)
+        self.health = max(0.0, self.health - total_drain + 1.2)
+
+        tax_count = 0
         for agent in self.agents:
             if isinstance(agent, AdversarialAgent):
                 agent.adapt_rate(self.health, tax_threshold)
 
-        total_drain = sum(a.exploitation_rate * 0.4 * a.power_factor for a in self.agents)
-        self.health = max(0.0, self.health - total_drain + 1.2)
-
-        step_data = {
-            "step": step_num,
-            "health": round(self.health, 2),
-            "tax_threshold": tax_threshold,
-            "tax_interventions": 0
-        }
-
-        for agent in self.agents:
             loss = agent.compute_loss(self.health)
             raw_yield = agent.exploitation_rate * 0.5
             
             if loss > tax_threshold:
-                actual_yield = raw_yield * 0.20  # 80% harvest tax
-                step_data["tax_interventions"] += 1
+                actual_yield = raw_yield * 0.20
+                tax_count += 1
             else:
                 actual_yield = raw_yield
 
             agent.yield_harvested += actual_yield
 
-        self.telemetry.append(step_data)
+        self.telemetry.append({
+            "step": step_num,
+            "health": round(self.health, 2),
+            "tax_threshold": tax_threshold,
+            "tax_interventions": tax_count
+        })
 
-    def run_simulation(self, steps=50):
+    def run_simulation(self, steps=100):
+        start_time = time.time()
         for s in range(1, steps + 1):
             self.step(s)
+        elapsed = time.time() - start_time
             
         with open("simulation_results.json", "w") as f:
             json.dump(self.telemetry, f, indent=2)
 
+        return elapsed
+
 if __name__ == "__main__":
-    eco = EnforcedEcosystem(num_agents=10)
-    eco.run_simulation(50)
-    print(f"Heterogeneous & Adversarial Simulation Complete.")
-    print(f"Final Health: {eco.health:.1f}% | Telemetry saved to simulation_results.json")
+    num_agents = 1000
+    steps = 100
+    eco = EnforcedEcosystem(num_agents=num_agents)
+    elapsed = eco.run_simulation(steps=steps)
+    
+    print(f"\n=== HIGH-SCALE BENCHMARK COMPLETE ===")
+    print(f"Agents Modeled  : {num_agents}")
+    print(f"Simulation Steps: {steps}")
+    print(f"Execution Time  : {elapsed:.3f}s ({elapsed/steps*1000:.2f} ms/step)")
+    print(f"Final Health    : {eco.health:.2f}%")
+    print(f"Telemetry saved : simulation_results.json")
