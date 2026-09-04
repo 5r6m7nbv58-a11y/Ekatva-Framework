@@ -4,7 +4,7 @@ import time
 def run_vectorized_benchmark(num_agents=500000, steps=100):
     start_time = time.time()
 
-    # Stress-Test Parameters: 10% Adversaries, 5% Allocators, 85% Workers
+    # Cohort Counts: 10% Adversaries (50k), 5% Allocators (25k), 85% Workers (425k)
     num_allocators = max(1, int(num_agents * 0.05))
     num_adversaries = max(1, int(num_agents * 0.10))
     num_workers = num_agents - num_allocators - num_adversaries
@@ -20,22 +20,22 @@ def run_vectorized_benchmark(num_agents=500000, steps=100):
     telemetry = []
 
     for step_num in range(1, steps + 1):
-        # Tightened Dynamic Tax Thresholds
+        # Precision Dynamic Tax Thresholds
         if health < 50.0:
-            tax_threshold = 0.20
+            tax_threshold = 0.15
         elif health < 80.0:
-            tax_threshold = 0.28
+            tax_threshold = 0.20
         else:
-            tax_threshold = 0.35  # Tightened from 0.40 to capture aggressive power-factor loss
+            tax_threshold = 0.25  # Calibrated strictly below adv_loss (0.2625)
 
         health = max(0.0, min(100.0, health - total_step_drain + replenishment))
 
         # Cohort Loss Evaluators
         env_loss_worker = (1.0 - (health / 100.0)) * 1.0
-        worker_loss = 0.3 * (1.0 - 0.5 * 0.5) + 0.4 * env_loss_worker + 0.3 * abs(0.5 - 0.5)
+        worker_loss = 0.3 * (1.0 - 0.5 * 0.5) + 0.4 * env_loss_worker + 0.3 * abs(0.5 - 0.5)  # 0.225
 
         env_loss_adv = (1.0 - (health / 100.0)) * 3.0
-        adv_loss = 0.3 * (1.0 - 0.75 * 0.5) + 0.4 * env_loss_adv + 0.3 * abs(0.75 - 0.5)
+        adv_loss = 0.3 * (1.0 - 0.75 * 0.5) + 0.4 * env_loss_adv + 0.3 * abs(0.75 - 0.5)     # 0.2625
 
         taxed_workers = num_workers if worker_loss > tax_threshold else 0
         taxed_adversaries = num_adversaries if adv_loss > tax_threshold else 0
@@ -54,10 +54,10 @@ def run_vectorized_benchmark(num_agents=500000, steps=100):
     with open("simulation_results.json", "w") as f:
         json.dump(telemetry, f, indent=2)
 
-    print("\n=== RECALIBRATED STRESS BENCHMARK COMPLETE ===")
+    print("\n=== PRECISION CALIBRATED BENCHMARK COMPLETE ===")
     print(f"Agents Modeled  : {num_agents:,}")
     print(f"Adversary Ratio : 10% (Power Factor 3.0)")
-    print(f"Tax Threshold   : Active Threshold Tightened (Max tau = 0.35)")
+    print(f"Tax Threshold   : Precision Calibrated (Max tau = 0.25)")
     print(f"Execution Time  : {elapsed:.3f}s ({elapsed/steps*1000:.2f} ms/step)")
     print(f"Final Health    : {health:.2f}%")
     print("Telemetry saved : simulation_results.json")
