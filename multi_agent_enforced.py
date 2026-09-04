@@ -62,8 +62,6 @@ class EnforcedEcosystem:
         tax_threshold = self.get_dynamic_threshold()
 
         total_drain = sum(a.exploitation_rate * 0.004 * a.power_factor for a in self.agents)
-        
-        # Adaptive environment recovery scaled to population size N
         replenishment = 0.003 * self.num_agents
         self.health = max(0.0, min(100.0, self.health - total_drain + replenishment))
 
@@ -112,5 +110,4 @@ if __name__ == "__main__":
     print(f"Simulation Steps: {steps}")
     print(f"Execution Time  : {elapsed:.3f}s ({elapsed/steps*1000:.2f} ms/step)")
     print(f"Final Health    : {eco.health:.2f}%")
-    print("Telemetry saved : sim
-ulation_results.json")
+    print("Telemetry saved : simulation_results.json")
