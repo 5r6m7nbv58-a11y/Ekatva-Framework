@@ -1,0 +1,18 @@
+{
+  "worker": {
+    "agent_type": "Worker (P=1.0)",
+    "requested_instructions": 1000000,
+    "stall_cycles_injected": 0,
+    "total_cycles_spent": 1000000,
+    "hw_loss": 0.15,
+    "silicon_throttled": false
+  },
+  "superintelligence": {
+    "agent_type": "Superintelligence (P=10.0)",
+    "requested_instructions": 1000000,
+    "stall_cycles_injected": 18999999,
+    "total_cycles_spent": 19999999,
+    "hw_loss": 2.55,
+    "silicon_throttled": true
+  }
+}
